@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xrgb>
+  <models type="rgb_effects">
+    <model name="Single Line" DisplayAs="Single Line" Antialias="1" Controller="Outside" Dir="L" LayoutGroup="Default" LightsPerNode="1" NodesPerString="50" NumStrings="1" PixelSize="2" SourceVersion="2026.17" StartChannel="!Outside:1" StartSide="B" StringType="RGB Nodes" Transparency="0" versionNumber="8" WorldPosX="349.410095" WorldPosY="249.382706" WorldPosZ="0.000000" X2="740.960205" Y2="159.780487" Z2="0.000000">
+      <ControllerConnection Port="40" Protocol="ws2811" />
+      <subModel name="Left Half" layout="horizontal" type="ranges" bufferstyle="Default" line0="1-25" />
+      <Aliases>
+        <alias name="oldname:String 1" />
+      </Aliases>
+    </model>
+    <model name="Single Line-2" DisplayAs="Single Line" Antialias="1" Controller="Outside" Dir="L" LayoutGroup="Default" LightsPerNode="1" NodesPerString="50" NumStrings="1" PixelSize="2" SourceVersion="2026.17" StartChannel="!Outside:151" StartSide="B" StringType="RGB Nodes" Transparency="0" versionNumber="8" WorldPosX="345.898499" WorldPosY="410.919006" WorldPosZ="0.000000" X2="496.899841" Y2="258.107056" Z2="0.000000">
+      <ControllerConnection Port="42" Protocol="ws2811" />
+    </model>
+  </models>
+  <modelGroups type="rgb_effects">
+    <modelGroup name="All Lines" models="Single Line,Single Line-2" layout="minimalGrid" GridSize="400" />
+  </modelGroups>
+</xrgb>

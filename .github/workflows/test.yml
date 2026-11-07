@@ -1,0 +1,76 @@
+name: Test
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  unit:
+    name: Offline tests (Python ${{ matrix.python }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.9", "3.13"]   # oldest supported and current; xsq.py must stay stdlib-only
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - run: python tests/test_skill.py
+
+  skills-cli:
+    name: Installable with the skills CLI
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Skill is discovered
+        run: |
+          npx -y skills add "$GITHUB_WORKSPACE" --list 2>&1 | tee list.txt
+          grep -q "xlights" list.txt
+      - name: Installed copy works (data + references ship with it)
+        run: |
+          mkdir -p /tmp/install-test && cd /tmp/install-test && git init -q
+          npx -y skills add "$GITHUB_WORKSPACE" --copy -y -a claude-code
+          test -f .claude/skills/xlights/data/effects.json
+          test -f .claude/skills/xlights/references/effects/Bars.md
+          python3 .claude/skills/xlights/scripts/xsq.py effect Bars
+
+  generated-fresh:
+    name: Generated reference matches its recorded xLights release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Sparse shallow fetch of xLights effect metadata at the recorded commit
+        run: |
+          SHA=$(python -c "import json;print(json.load(open('skills/xlights/data/effects.json'))['_commit'])")
+          REL=$(python -c "import json;print(json.load(open('skills/xlights/data/effects.json')).get('_release',''))")
+          echo "Recorded xLights release: $REL ($SHA)"
+          if [[ -z "$REL" || "$REL" == master || "$REL" == main || "$REL" == nightly* ]]; then
+            echo "::error::effects.json must be generated from a stable release tag (got '$REL')"; exit 1
+          fi
+          echo "REL=$REL" >> "$GITHUB_ENV"
+          TAGSHA=$(git ls-remote https://github.com/xLightsSequencer/xLights.git "refs/tags/$REL^{}" | cut -f1)
+          if [[ "$TAGSHA" != "$SHA" ]]; then
+            echo "::error::Recorded commit $SHA is not release $REL (tag points at '$TAGSHA')"; exit 1
+          fi
+          git init -q .cache/xLights
+          cd .cache/xLights
+          git remote add origin https://github.com/xLightsSequencer/xLights.git
+          git sparse-checkout set --no-cone '/resources/effectmetadata/' '/src-core/xLightsVersion.h'
+          git fetch -q --depth 1 --filter=blob:none origin "$SHA"
+          git checkout -q FETCH_HEAD
+      - name: Regenerate and compare (fails if generated files were hand-edited or the generator changed)
+        run: |
+          python tools/build_effect_reference.py .cache/xLights --ref "$REL"
+          git diff --exit-code -- skills/xlights/data skills/xlights/references/effects

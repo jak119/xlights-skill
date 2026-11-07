@@ -1,0 +1,97 @@
+name: Sync with upstream xLights
+
+# Weekly: regenerate the effect reference from the latest STABLE xLights release (the GitHub Release
+# marked "Latest", never master or nightly) and open a PR if anything changed.
+# The PR is a prompt for review, not an auto-merge: hand-written references may need updating too
+# (see AGENTS.md "Updating for a new xLights release").
+#
+# Requires: Settings > Actions > General > "Allow GitHub Actions to create and approve pull requests".
+
+on:
+  schedule:
+    - cron: "0 9 * * 1"   # Mondays 09:00 UTC
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "xLights release tag to sync from ('latest' = newest stable release)"
+        default: "latest"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Resolve latest stable release
+        id: rel
+        env:
+          GH_TOKEN: ${{ github.token }}
+          INPUT_REF: ${{ github.event.inputs.ref || 'latest' }}
+        run: |
+          if [[ "$INPUT_REF" == "latest" ]]; then REF=$(tools/latest_xlights_release.sh); else REF="$INPUT_REF"; fi
+          if [[ "$REF" == "master" || "$REF" == "main" || "$REF" == nightly* ]]; then
+            echo "::error::Refusing to sync from unreleased ref '$REF'"; exit 1
+          fi
+          CURRENT=$(python -c "import json;print(json.load(open('skills/xlights/data/effects.json')).get('_release',''))")
+          echo "ref=$REF" >> "$GITHUB_OUTPUT"
+          echo "current=$CURRENT" >> "$GITHUB_OUTPUT"
+          echo "Syncing from xLights $REF (currently $CURRENT)"
+
+      - name: Sparse shallow clone of xLights
+        id: xl
+        env:
+          REF: ${{ steps.rel.outputs.ref }}
+        run: |
+          git clone -q --depth 1 --filter=blob:none --sparse --branch "$REF" \
+            https://github.com/xLightsSequencer/xLights.git .cache/xLights
+          git -C .cache/xLights sparse-checkout set --no-cone '/resources/effectmetadata/' '/src-core/xLightsVersion.h'
+          echo "sha=$(git -C .cache/xLights rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Regenerate effect reference
+        run: python tools/build_effect_reference.py .cache/xLights --ref "${{ steps.rel.outputs.ref }}"
+
+      - name: Offline tests
+        run: python tests/test_skill.py
+
+      - name: Summarise changes
+        id: summary
+        run: |
+          {
+            echo 'body<<EOF'
+            echo "Automated sync to xLights release **${{ steps.rel.outputs.ref }}** (\`${{ steps.xl.outputs.sha }}\`), previously ${{ steps.rel.outputs.current }}."
+            echo
+            echo '### Generated changes'
+            echo '```'
+            git diff --stat -- skills/xlights/data skills/xlights/references/effects
+            echo '```'
+            echo '### Effects added / removed'
+            git status --porcelain -- skills/xlights/references/effects | grep -E '^(\?\?| D)' || echo '(none)'
+            echo
+            echo '### Reviewer checklist (AGENTS.md)'
+            echo '- [ ] New effects: check custom controls; add hidden keys to `EXTRA_EFFECT_KEYS`'
+            echo '- [ ] Removed/renamed keys: update examples in hand-written references'
+            echo '- [ ] Re-verify provenance-map facts whose upstream files changed between ${{ steps.rel.outputs.current }} and ${{ steps.rel.outputs.ref }}'
+            echo '- [ ] Bump version mentions (`Sequence.new` default, README, references)'
+            echo '- [ ] Run integration tests against a current xLights build'
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Open pull request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: bot/xlights-sync-${{ steps.rel.outputs.ref }}
+          delete-branch: true
+          add-paths: |
+            skills/xlights/data
+            skills/xlights/references/effects
+          commit-message: "Sync effect reference with xLights ${{ steps.rel.outputs.ref }} (${{ steps.xl.outputs.sha }})"
+          title: "Sync effect reference with xLights ${{ steps.rel.outputs.ref }}"
+          body: ${{ steps.summary.outputs.body }}
+          labels: upstream-sync
