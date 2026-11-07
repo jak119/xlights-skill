@@ -3,6 +3,8 @@
 An [Agent Skill](https://agentskills.io) that teaches coding agents (Claude Code, Cursor, Codex, etc.) to
 create, edit, validate and render **xLights** light-show sequences and show folders.
 
+Most of this was written with AI (Claude). It works for my show, but no promises it'll work for yours.
+
 It includes:
 
 - **Exact file formats**: `.xsq` sequences, `xlights_rgbeffects.xml` layouts, `xlights_networks.xml`,
@@ -64,3 +66,7 @@ tools/update_from_upstream.sh          # shallow-clones the latest stable releas
 
 The skill tracks the latest **stable** xLights release. The current reference was generated from
 release **2026.19** (`24ec3d4`, 2026-10-23).
+
+## License
+
+[MIT](LICENSE). Not affiliated with the xLights project.

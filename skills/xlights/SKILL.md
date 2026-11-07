@@ -1,6 +1,7 @@
 ---
 name: xlights
 description: Create, edit, inspect, validate and render xLights light-show sequences (.xsq) and show folders (xlights_rgbeffects.xml layout, xlights_networks.xml controllers, .xtiming, .fseq). Use for anything involving xLights, pixel/LED Christmas or Halloween displays, sequencing a song to lights or building non-musical looping animations, effects (Bars, Spirals, Color Wash, Twinkle, Singing Faces...), timing tracks, beats, lyrics, model groups and submodels, colour palettes for RGB pixels, gamma and dimming curves, value curves, layer blending, Falcon Player (FPP) uploads/playlists or xSchedule playback, or the xLights automation/REST/MCP API. Has the exact XML formats, a full per-effect setting-key reference, a Python helper to build and validate sequences, LED colour guidance, and design advice for beginners and experienced sequencers.
+license: MIT
 ---
 
 # xLights sequences and shows
