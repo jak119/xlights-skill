@@ -12,5 +12,10 @@ XML: `<Effect name="Spirals" .../>`. Settings go in `<EffectDB>`; colours in `<C
 | `E_TEXTCTRL_Spirals_Movement` | float | 1.0 | -20 .. 20 (raw -200 .. 200, divisor 10) | [VC: `E_VALUECURVE_Spirals_Movement`] [float text with 1 decimal(s) (e.g. 1.0)] Speed and direction of the spiral rotation. Positive values rotate in one direction, negative in the other. Zero keeps the spirals stationary. |
 | `E_CHECKBOX_Spirals_Blend` | bool | 0 |  | When enabled, blends all palette colors vertically across each spiral arm instead of using distinct per-arm colors. |
 | `E_CHECKBOX_Spirals_3D` | bool | 0 |  | When enabled, applies a brightness gradient across each spiral arm to simulate a 3D shading effect, making the arms appear rounded. |
+| `E_CHECKBOX_Spirals_Reverse3D` | bool | 0 |  | Flips which edge of each spiral arm is solid and which is faded when 3D is enabled, so the solid edge can lead the movement instead of trail it. |
 | `E_CHECKBOX_Spirals_Grow` | bool | 0 |  | When enabled, the spiral arms gradually increase in thickness over the effect duration. |
 | `E_CHECKBOX_Spirals_Shrink` | bool | 0 |  | When enabled, the spiral arms gradually decrease in thickness over the effect duration. When both Grow and Shrink are enabled, the arms grow then shrink. |
+
+## Visibility rules (which settings matter when)
+
+- when `Spirals_3D == True`: enable Spirals_Reverse3D
