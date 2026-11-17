@@ -1,7 +1,7 @@
 {
- "_source": "xLights resources/effectmetadata @ 2026.19 (24ec3d4 2026-10-23)",
- "_release": "2026.19",
- "_commit": "24ec3d441fe54b0df48dc1684e547b80feccbec7",
+ "_source": "xLights resources/effectmetadata @ 2026.20 (c86999e 2026-11-12)",
+ "_release": "2026.20",
+ "_commit": "c86999e87f252a2ba7ad520580b134d36e434653",
  "effects": {
   "Adjust": {
    "file": "references/effects/Adjust.md",
@@ -6656,6 +6656,14 @@
      "type": "bool",
      "default": 0,
      "description": "When enabled, applies a brightness gradient across each spiral arm to simulate a 3D shading effect, making the arms appear rounded."
+    },
+    {
+     "id": "Spirals_Reverse3D",
+     "key": "E_CHECKBOX_Spirals_Reverse3D",
+     "label": "Reverse 3D",
+     "type": "bool",
+     "default": 0,
+     "description": "Flips which edge of each spiral arm is solid and which is faded when 3D is enabled, so the solid edge can lead the movement instead of trail it."
     },
     {
      "id": "Spirals_Grow",

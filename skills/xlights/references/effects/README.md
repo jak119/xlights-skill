@@ -1,6 +1,6 @@
 # Effect reference index
 
-Generated from xLights release 2026.19 `resources/effectmetadata` (24ec3d4 2026-10-23) by `tools/build_effect_reference.py`.
+Generated from xLights release 2026.20 `resources/effectmetadata` (c86999e 2026-11-12) by `tools/build_effect_reference.py`.
 Each page lists every setting key, its type, default, range/options and what it does.
 Machine-readable version: `data/effects.json`.
 
